@@ -7,12 +7,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-
+	"backend/migrations"
 	"backend/models"
 	"backend/router"
-	"backend/services"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -49,14 +48,9 @@ func main() {
 	// Auto-migrate models
 	db.AutoMigrate(&models.User{}, &models.Server{}, &models.Project{}, &models.App{}, &models.AuditLog{})
 
-	// Create default admin user if no users exist
-	if err := services.CreateDefaultAdmin(db); err != nil {
-		log.Printf("Warning: Failed to create default admin user: %v", err)
-	} else {
-		log.Println("Default users created:")
-		log.Println("  Admin: username=admin, password=admin123")
-		log.Println("  User: username=devops, password=devops123")
-		log.Println("  User: username=user, password=user123")
+	// Run migrations
+	if err := migrations.CreateDefaultUsers(db); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
 	// Set Gin to production mode in production
